@@ -1,0 +1,10 @@
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/CMakeFiles/INSTALL.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/CMakeFiles/ALL_BUILD.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/CMakeFiles/ZERO_CHECK.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/flutter/CMakeFiles/flutter_wrapper_plugin.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/flutter/CMakeFiles/flutter_wrapper_app.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/flutter/CMakeFiles/flutter_assemble.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/flutter/CMakeFiles/INSTALL.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/runner/CMakeFiles/artgallery.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/runner/CMakeFiles/INSTALL.dir
+C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/runner/CMakeFiles/ALL_BUILD.dir

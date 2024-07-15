@@ -1,0 +1,10 @@
+^C:\USERS\POCSC\ONEDRIVE\DOCUMENTS\GITHUB\ARTGALLERY\WINDOWS\FLUTTER\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SC:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows -BC:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build --check-stamp-file C:/Users/pocsc/OneDrive/Documents/GitHub/artgallery/windows/build/flutter/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
