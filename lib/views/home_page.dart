@@ -11,7 +11,7 @@ class HomePage extends StatelessWidget {
         title: const Text('Home Page'),
       ),
       body: const Center(),
-      bottomNavigationBar: NavigationMenu(currentIndex: 0),
+      bottomNavigationBar: const NavigationMenu(currentIndex: 0),
     );
   }
 }

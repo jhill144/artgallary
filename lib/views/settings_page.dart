@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:artgallery/utilities/navigation_menu.dart';
 
 class SettingsPage extends StatelessWidget {
-  const SettingsPage({Key? key}) : super(key: key);
+  const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Settings Page'),
+        title: const Text('Settings Page'),
       ),
-      body: Center(),
-      bottomNavigationBar: NavigationMenu(currentIndex: 2),
+      body: const Center(),
+      bottomNavigationBar: const NavigationMenu(currentIndex: 2),
     );
   }
 }

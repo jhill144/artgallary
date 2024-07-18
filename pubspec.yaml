@@ -38,6 +38,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   form_builder_validators: ^11.0.0
   flutter_form_builder: ^9.3.0
+  firebase_auth: ^5.1.2
 
 dev_dependencies:
   flutter_test:

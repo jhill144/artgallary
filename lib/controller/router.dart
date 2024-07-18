@@ -48,7 +48,7 @@ final GoRouter router = GoRouter(
       path: '/registration',
       pageBuilder: (context, state) => NoTransitionPage<void>(
         key: state.pageKey,
-        child: RegistrationPage(),
+        child: const RegistrationPage(),
       ),
     ),
     GoRoute(

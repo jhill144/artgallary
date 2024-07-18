@@ -36,56 +36,58 @@ class LoginPage extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               FormBuilder(
-                key: _formKey,
-                child: Column(
-                  children: [
-                    FormBuilderTextField(
-                      key: _emailFieldKey,
-                      name: 'emailField',
-                      decoration: const InputDecoration(
-                          labelText: 'Email',
-                          hintText: 'Enter your email address.'),
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(),
-                        FormBuilderValidators.email(),
-                      ]),
-                    ),
-                    const SizedBox(height: 10),
-                    FormBuilderTextField(
-                      key: _passwordFieldKey,
-                      name: 'password',
-                      decoration: const InputDecoration(
-                          labelText: 'Password',
-                          hintText: 'Enter your password.'),
-                      obscureText: true,
-                      validator: FormBuilderValidators.compose([
-                        FormBuilderValidators.required(),
-                      ]),
-                    ),
-                    const SizedBox(height: 10),
-                    MaterialButton(
-                      color: Theme.of(context).colorScheme.primary,
-                      onPressed: () {
-                        // Validate and save the form values
-                        _formKey.currentState?.saveAndValidate();
-                        debugPrint(_formKey.currentState?.value.toString());
+                  key: _formKey,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
+                      children: [
+                        FormBuilderTextField(
+                          key: _emailFieldKey,
+                          name: 'emailField',
+                          decoration: const InputDecoration(
+                              labelText: 'Email',
+                              hintText: 'Enter your email address.'),
+                          validator: FormBuilderValidators.compose([
+                            FormBuilderValidators.required(),
+                            FormBuilderValidators.email(),
+                          ]),
+                        ),
+                        const SizedBox(height: 10),
+                        FormBuilderTextField(
+                          key: _passwordFieldKey,
+                          name: 'password',
+                          decoration: const InputDecoration(
+                              labelText: 'Password',
+                              hintText: 'Enter your password.'),
+                          obscureText: true,
+                          validator: FormBuilderValidators.compose([
+                            FormBuilderValidators.required(),
+                          ]),
+                        ),
+                        const SizedBox(height: 10),
+                        MaterialButton(
+                          color: Theme.of(context).colorScheme.primary,
+                          onPressed: () {
+                            // Validate and save the form values
+                            _formKey.currentState?.saveAndValidate();
+                            debugPrint(_formKey.currentState?.value.toString());
 
-                        // On another side, can access all field values without saving form with instantValues
-                        _formKey.currentState?.validate();
-                        debugPrint(
-                            _formKey.currentState?.instantValue.toString());
-                      },
-                      child: const Text('Login'),
+                            // On another side, can access all field values without saving form with instantValues
+                            _formKey.currentState?.validate();
+                            debugPrint(
+                                _formKey.currentState?.instantValue.toString());
+                          },
+                          child: const Text('Login'),
+                        ),
+                        const SizedBox(height: 10),
+                        TextButton(
+                            onPressed: () {
+                              context.goNamed(DirectoryRouter.registrationpage);
+                            },
+                            child: const Text('Not Yet Registrered?')),
+                      ],
                     ),
-                    const SizedBox(height: 10),
-                    TextButton(
-                        onPressed: () {
-                          context.goNamed(DirectoryRouter.registrationpage);
-                        },
-                        child: const Text('Not Yet Registrered?')),
-                  ],
-                ),
-              ),
+                  )),
             ],
           )),
         ),

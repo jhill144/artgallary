@@ -5,8 +5,7 @@ import 'package:artgallery/utilities/directoryrouter.dart';
 class NavigationMenu extends StatelessWidget {
   final int currentIndex;
 
-  const NavigationMenu({required this.currentIndex, Key? key})
-      : super(key: key);
+  const NavigationMenu({required this.currentIndex, super.key});
 
   @override
   Widget build(BuildContext context) {
