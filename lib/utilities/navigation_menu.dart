@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:artgallery/utilities/directoryrouter.dart';
 
 class NavigationMenu extends StatelessWidget {
   final int currentIndex;
@@ -28,13 +29,13 @@ class NavigationMenu extends StatelessWidget {
       onTap: (int index) {
         switch (index) {
           case 0:
-            context.goNamed('/home');
+            context.goNamed(DirectoryRouter.homepage);
             break;
           case 1:
-            context.goNamed('/profile');
+            context.goNamed(DirectoryRouter.profilepage);
             break;
           case 2:
-            context.goNamed('/settings');
+            context.goNamed(DirectoryRouter.settingspage);
             break;
         }
       },

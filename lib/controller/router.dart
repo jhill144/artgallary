@@ -3,25 +3,38 @@ import 'package:go_router/go_router.dart';
 import 'package:artgallery/views/home_page.dart';
 import 'package:artgallery/views/profile_page.dart';
 import 'package:artgallery/views/settings_page.dart';
+import 'package:artgallery/utilities/directoryrouter.dart';
 
 final GoRouter router = GoRouter(
   initialLocation:
       "/home", // Should eventually be "/login" when that is implemented
   routes: [
     GoRoute(
-      name: '/home',
+      name: DirectoryRouter.homepage,
       path: '/home',
-      builder: (context, state) => const HomePage(),
+      pageBuilder: (context, state) => NoTransitionPage<void>(
+        key: state.pageKey,
+        name: DirectoryRouter.homepage,
+        child: const HomePage(),
+      ),
     ),
     GoRoute(
-      name: '/profile',
+      name: DirectoryRouter.profilepage,
       path: '/profile',
-      builder: (context, state) => const ProfilePage(),
+      pageBuilder: (context, state) => NoTransitionPage<void>(
+        key: state.pageKey,
+        name: DirectoryRouter.profilepage,
+        child: const ProfilePage(),
+      ),
     ),
     GoRoute(
-      name: '/settings',
+      name: DirectoryRouter.settingspage,
       path: '/settings',
-      builder: (context, state) => const SettingsPage(),
+      pageBuilder: (context, state) => NoTransitionPage<void>(
+        key: state.pageKey,
+        name: DirectoryRouter.settingspage,
+        child: const SettingsPage(),
+      ),
     ),
   ],
 );
