@@ -3,6 +3,6 @@ class DirectoryRouter {
   static String profilepage = '/profile';
   static String settingspage = '/settings';
   static String splashpage = '/splash';
-  static String loginpage = '/authentication/login';
-  static String registrationpage = '/authentication/registration';
+  static String loginpage = '/login';
+  static String registrationpage = '/registration';
 }

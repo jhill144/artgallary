@@ -20,7 +20,7 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     Timer(const Duration(seconds: 5), () {
-      context.goNamed(DirectoryRouter.homepage);
+      context.goNamed(DirectoryRouter.loginpage);
     });
     super.initState();
   }

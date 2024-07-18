@@ -1,5 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:artgallery/views/home_page.dart';
+import 'package:artgallery/views/authentication/login_page.dart';
+import 'package:artgallery/views/authentication/registration_page.dart';
 import 'package:artgallery/views/profile_page.dart';
 import 'package:artgallery/views/settings_page.dart';
 import 'package:artgallery/views/splash_page.dart';
@@ -31,6 +33,22 @@ final GoRouter router = GoRouter(
       pageBuilder: (context, state) => NoTransitionPage<void>(
         key: state.pageKey,
         child: const SettingsPage(),
+      ),
+    ),
+    GoRoute(
+      name: DirectoryRouter.loginpage,
+      path: '/login',
+      pageBuilder: (context, state) => NoTransitionPage<void>(
+        key: state.pageKey,
+        child: LoginPage(),
+      ),
+    ),
+    GoRoute(
+      name: DirectoryRouter.registrationpage,
+      path: '/registration',
+      pageBuilder: (context, state) => NoTransitionPage<void>(
+        key: state.pageKey,
+        child: RegistrationPage(),
       ),
     ),
     GoRoute(
