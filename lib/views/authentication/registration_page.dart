@@ -1,4 +1,6 @@
 import 'package:artgallery/utilities/directoryrouter.dart';
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
@@ -11,12 +13,28 @@ class RegistrationPage extends StatefulWidget {
 }
 
 class _RegistrationPageState extends State<RegistrationPage> {
+  final FirebaseAuthServices _auth = FirebaseAuthServices();
+
   final _formKey = GlobalKey<FormBuilderState>();
   final _emailFieldKey = GlobalKey<FormBuilderFieldState>();
   final _passwordFieldKey = GlobalKey<FormBuilderFieldState>();
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
+  void _register() async {
+    String emailAddress = _emailController.text;
+    String passWord = _passwordController.text;
+
+    User? user = await _auth.signUpWithEmailAndPassword(emailAddress, passWord);
+
+    if (user != null) {
+      print("User was created");
+      context.goNamed(DirectoryRouter.homepage);
+    } else {
+      print("User was not created");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +90,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                           obscureText: true,
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(),
+                            FormBuilderValidators.password(),
                           ]),
                         ),
                         const SizedBox(height: 10),
@@ -86,6 +105,7 @@ class _RegistrationPageState extends State<RegistrationPage> {
                             _formKey.currentState?.validate();
                             debugPrint(
                                 _formKey.currentState?.instantValue.toString());
+                            _register();
                           },
                           child: const Text('Register Account'),
                         ),

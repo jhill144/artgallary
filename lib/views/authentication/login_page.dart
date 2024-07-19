@@ -1,14 +1,40 @@
 import 'package:artgallery/utilities/directoryrouter.dart';
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:go_router/go_router.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({super.key});
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final FirebaseAuthServices _auth = FirebaseAuthServices();
+
   final _formKey = GlobalKey<FormBuilderState>();
   final _emailFieldKey = GlobalKey<FormBuilderFieldState>();
   final _passwordFieldKey = GlobalKey<FormBuilderFieldState>();
+
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  void _signin() async {
+    String emailAddress = _emailController.text;
+    String passWord = _passwordController.text;
+
+    User? user = await _auth.signInWithEmailAndPassword(emailAddress, passWord);
+
+    if (user != null) {
+      print("User was created");
+      context.goNamed(DirectoryRouter.homepage);
+    } else {
+      print("User was not created");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,11 +64,12 @@ class LoginPage extends StatelessWidget {
               FormBuilder(
                   key: _formKey,
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
                     child: Column(
                       children: [
                         FormBuilderTextField(
                           key: _emailFieldKey,
+                          controller: _emailController,
                           name: 'emailField',
                           decoration: const InputDecoration(
                               labelText: 'Email',
@@ -55,6 +82,7 @@ class LoginPage extends StatelessWidget {
                         const SizedBox(height: 10),
                         FormBuilderTextField(
                           key: _passwordFieldKey,
+                          controller: _passwordController,
                           name: 'password',
                           decoration: const InputDecoration(
                               labelText: 'Password',
@@ -62,6 +90,7 @@ class LoginPage extends StatelessWidget {
                           obscureText: true,
                           validator: FormBuilderValidators.compose([
                             FormBuilderValidators.required(),
+                            FormBuilderValidators.password(),
                           ]),
                         ),
                         const SizedBox(height: 10),
@@ -76,6 +105,7 @@ class LoginPage extends StatelessWidget {
                             _formKey.currentState?.validate();
                             debugPrint(
                                 _formKey.currentState?.instantValue.toString());
+                            _signin();
                           },
                           child: const Text('Login'),
                         ),

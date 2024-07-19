@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "731747223236",
+    "project_id": "gsu-mobileclass",
+    "storage_bucket": "gsu-mobileclass.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:731747223236:android:7f60fe3fb6b98e9ee36b91",
+        "android_client_info": {
+          "package_name": "com.example.artgallary"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtvnaBHpJ0a8NEhUrF79RDjeDIKPuN9uY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
