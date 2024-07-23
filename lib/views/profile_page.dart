@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:artgallery/utilities/directoryrouter.dart';
 import 'package:artgallery/utilities/navigation_menu.dart';
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -9,14 +11,14 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Dummy data for demonstration purposes
   List<Map<String, String>> uploadedArt = [
     {"title": "Sunset", "description": "A beautiful sunset", "imageUrl": "assets/sunset.jpg"},
     {"title": "Mountain", "description": "A majestic mountain", "imageUrl": "assets/mountain.jpg"},
   ];
-  
+
   String bio = "Artist and photographer.";
   String profilePictureUrl = "assets/profile_picture.jpg";
+  String name = "Your Name";
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +49,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 10),
           Text(
-            'Your Name',
+            name,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 5),
@@ -57,8 +59,23 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 10),
           ElevatedButton(
-            onPressed: () {
-              // Add logic to edit bio and profile picture
+            onPressed: () async {
+              final result = await context.pushNamed(
+                DirectoryRouter.editprofilepage,
+                extra: {
+                  'currentName': name,
+                  'currentBio': bio,
+                  'currentProfilePictureUrl': profilePictureUrl,
+                },
+              );
+
+              if (result != null && result is Map<String, dynamic>) {
+                setState(() {
+                  name = result['name'] as String;
+                  bio = result['bio'] as String;
+                  profilePictureUrl = result['profilePictureUrl'] as String;
+                });
+              }
             },
             child: const Text('Edit Profile'),
           ),
@@ -80,7 +97,7 @@ class _ProfilePageState extends State<ProfilePage> {
             ],
           ),
           SizedBox(
-            height: 500, // Set a height for the TabBarView
+            height: 500,
             child: TabBarView(
               children: [
                 _buildUploadedArtSection(),
@@ -125,14 +142,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildSharedArtSection() {
-    // Placeholder for shared art section
     return const Center(
       child: Text('Shared Art will be displayed here'),
     );
   }
 
   Widget _buildInteractionsSection() {
-    // Placeholder for interactions section
     return const Center(
       child: Text('Comments, Likes, and Shared Work will be displayed here'),
     );
