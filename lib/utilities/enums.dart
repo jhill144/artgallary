@@ -1,9 +1,4 @@
-enum ArtistAccess {
+enum AccessLevel {
   artpublic,
   artprivate,
-}
-
-enum ArtworkAccess {
-  artworkpublic,
-  artworkprivate,
 }

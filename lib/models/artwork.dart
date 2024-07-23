@@ -7,7 +7,7 @@ class Artwork {
   String artworkName;
   DateTime? artworkCreate;
   DateTime? artworkUpdate;
-  ArtworkAccess artworkAccess;
+  AccessLevel artworkAccess;
 
   Artwork({
     this.artworkID = '',
@@ -15,6 +15,6 @@ class Artwork {
     this.artworkName = '',
     this.artworkCreate,
     this.artworkUpdate,
-    this.artworkAccess = ArtworkAccess.artworkpublic,
+    this.artworkAccess = AccessLevel.artpublic,
   });
 }

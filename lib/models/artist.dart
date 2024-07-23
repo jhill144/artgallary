@@ -4,12 +4,12 @@ class Artist {
   String artistID;
   String artistEmail;
   String artistUsername;
-  ArtistAccess artistAccess;
+  AccessLevel artistAccess;
 
   Artist({
     this.artistID = '',
     this.artistEmail = '',
     this.artistUsername = '',
-    this.artistAccess = ArtistAccess.artpublic,
+    this.artistAccess = AccessLevel.artpublic,
   });
 }
