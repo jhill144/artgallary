@@ -22,6 +22,11 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   void _signin() async {
     String emailAddress = _emailController.text;
     String passWord = _passwordController.text;

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:artgallery/utilities/directoryrouter.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,9 +21,19 @@ class _SplashPageState extends State<SplashPage> {
   @override
   void initState() {
     Timer(const Duration(seconds: 5), () {
-      context.goNamed(DirectoryRouter.loginpage);
+      _isSignedIn();
     });
     super.initState();
+  }
+
+  void _isSignedIn() {
+    if (FirebaseAuth.instance.currentUser != null) {
+      // signed in
+      context.goNamed(DirectoryRouter.homepage);
+    } else {
+      // signed out
+      context.goNamed(DirectoryRouter.loginpage);
+    }
   }
 
   @override
