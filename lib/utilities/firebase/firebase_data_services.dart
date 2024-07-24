@@ -37,6 +37,12 @@ class FirebaseDataServices {
     return artistSnapshot.data() as Map<String, dynamic>?;
   }
 
+  Future<Map<String, dynamic>?> getAllArtwork() async {
+    DocumentSnapshot artWorkSnapshot =
+        await FirebaseFirestore.instance.collection('artworks').doc().get();
+    return artWorkSnapshot.data() as Map<String, dynamic>?;
+  }
+
   Future<String> addArtistArtwork(
       String title, String description, String downloadUrl) async {
     Map<String, dynamic>? artistData =
