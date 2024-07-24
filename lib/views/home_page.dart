@@ -1,3 +1,5 @@
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,7 +9,6 @@ import 'package:artgallery/utilities/navigation_menu.dart';
 import 'package:artgallery/models/artwork.dart';
 import 'package:artgallery/views/artwork_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -50,6 +51,7 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         File? _imageFile;
+        String? _imageFileUrl; // For web
         bool _uploadError = false;
         String? _errorMessage;
         final TextEditingController _titleController = TextEditingController();
@@ -62,23 +64,32 @@ class _HomePageState extends State<HomePage> {
               await _picker.pickImage(source: ImageSource.gallery);
           if (pickedFile != null) {
             setState(() {
-              _imageFile = File(pickedFile.path);
+              if (kIsWeb) {
+                _imageFileUrl = pickedFile.path;
+              } else {
+                _imageFile = File(pickedFile.path);
+              }
             });
           }
         }
 
         Future<void> _uploadArtwork() async {
-          if (_imageFile == null ||
+          if ((kIsWeb && _imageFileUrl == null) ||
+              (!kIsWeb && _imageFile == null) ||
               _titleController.text.isEmpty ||
               _descriptionController.text.isEmpty) {
             return;
           }
 
           try {
-            String fileName = _imageFile!.path.split('/').last;
+            String fileName = kIsWeb
+                ? _imageFileUrl!.split('/').last
+                : _imageFile!.path.split('/').last;
             Reference storageRef =
                 FirebaseStorage.instance.ref().child('artworks/$fileName');
-            UploadTask uploadTask = storageRef.putFile(_imageFile!);
+            UploadTask uploadTask = kIsWeb
+                ? storageRef.putData(await XFile(_imageFileUrl!).readAsBytes())
+                : storageRef.putFile(_imageFile!);
 
             uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
               print('Task state: ${snapshot.state}');
@@ -180,9 +191,11 @@ class _HomePageState extends State<HomePage> {
                       },
                       child: const Text('Select Image'),
                     ),
-                    if (_imageFile != null) ...[
+                    if (_imageFile != null || _imageFileUrl != null) ...[
                       const SizedBox(height: 10),
-                      Image.file(_imageFile!, height: 100),
+                      kIsWeb
+                          ? Image.network(_imageFileUrl!, height: 100)
+                          : Image.file(_imageFile!, height: 100),
                     ],
                     if (_uploadError) ...[
                       const SizedBox(height: 10),

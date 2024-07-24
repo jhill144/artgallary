@@ -42,7 +42,7 @@ class ArtworkPage extends StatelessWidget {
             return const Center(child: Text('Artwork not found'));
           }
 
-          var artworkData = snapshot.data!.data() as Map<String, dynamic>?;
+          var artworkData = snapshot.data?.data() as Map<String, dynamic>?;
           if (artworkData == null) {
             print('No data available for this artwork');
             return const Center(
@@ -81,7 +81,7 @@ class ArtworkPage extends StatelessWidget {
               }
 
               var artistData =
-                  artistSnapshot.data!.data() as Map<String, dynamic>?;
+                  artistSnapshot.data?.data() as Map<String, dynamic>?;
               var artistUsername =
                   artistData?['artistUsername'] ?? 'Unknown artist';
 
@@ -91,7 +91,16 @@ class ArtworkPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    if (imageUrl.isNotEmpty) Image.network(imageUrl),
+                    if (imageUrl.isNotEmpty)
+                      Image.network(
+                        imageUrl,
+                        height: 300,
+                        fit: BoxFit.cover,
+                        errorBuilder: (BuildContext context, Object exception,
+                            StackTrace? stackTrace) {
+                          return const Text('Could not load image');
+                        },
+                      ),
                     Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -205,8 +214,9 @@ class CommentSection extends StatelessWidget {
                     }
 
                     var userData =
-                        userSnapshot.data!.data() as Map<String, dynamic>;
-                    var username = userData['artistUsername'] ?? 'Unknown user';
+                        userSnapshot.data?.data() as Map<String, dynamic>?;
+                    var username =
+                        userData?['artistUsername'] ?? 'Unknown user';
 
                     print('Commenter data: $userData');
 
