@@ -3,7 +3,8 @@ import 'package:artgallery/utilities/navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:artgallery/views/artwork_page.dart';
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
+import 'artwork_page.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -16,7 +17,26 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   String bio = "Artist and photographer.";
   String profilePictureUrl = "assets/profile_picture.jpg";
-  String name = "Your Name";
+  String username = "";
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserProfile();
+  }
+
+  Future<void> _loadUserProfile() async {
+    try {
+      final FirebaseAuthServices authService = FirebaseAuthServices();
+      final user = await authService.getCurrentUserId();
+      final userName = await authService.getUsername(user?.uid);
+      setState(() {
+        username = userName ?? "Your Name";
+      });
+    } catch (e) {
+      print("Failed to load user profile: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +67,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           const SizedBox(height: 10),
           Text(
-            name,
+            username,
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 5),
@@ -61,7 +81,7 @@ class _ProfilePageState extends State<ProfilePage> {
               final result = await context.pushNamed(
                 DirectoryRouter.editprofilepage,
                 extra: {
-                  'currentName': name,
+                  'currentName': username,
                   'currentBio': bio,
                   'currentProfilePictureUrl': profilePictureUrl,
                 },
@@ -69,7 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
               if (result != null && result is Map<String, dynamic>) {
                 setState(() {
-                  name = result['name'] as String;
+                  username = result['name'] as String;
                   bio = result['bio'] as String;
                   profilePictureUrl = result['profilePictureUrl'] as String;
                 });

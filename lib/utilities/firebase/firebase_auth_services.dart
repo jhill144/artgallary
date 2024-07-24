@@ -38,9 +38,21 @@ class FirebaseAuthServices {
     return null;
   }
 
-  String? getCurrentUserId() {
+  User? getCurrentUserId() {
     User? user = _auth.currentUser;
-    return user?.uid;
+    return user;
+  }
+
+  Future<String?> getUsername(String? uid) async {
+    if (uid == null) return null;
+    DocumentSnapshot artistDoc =
+        await FirebaseFirestore.instance.collection('artists').doc(uid).get();
+    if (artistDoc.exists) {
+      Map<String, dynamic>? artistData =
+          artistDoc.data() as Map<String, dynamic>?;
+      return artistData?['artistUsername'];
+    }
+    return null;
   }
 
   Future<void> createArtistDocument(String uid, String email) async {
