@@ -28,7 +28,7 @@ class FirebaseDataServices {
   }
 
   Future<Map<String, dynamic>?> getCurrentArtist() {
-    return getSpecificArtist(_authServices.getCurrentUserId());
+    return getSpecificArtist(_authServices.getCurrentUserId() as String?);
   }
 
   Future<Map<String, dynamic>?> getSpecificArtist(String? uid) async {
@@ -63,7 +63,8 @@ class FirebaseDataServices {
     String artworkId = docRef.id;
     await docRef.update({'artworkID': artworkId});
 
-    await addArtworkToArtist(_authServices.getCurrentUserId()!, artworkId);
+    await addArtworkToArtist(
+        _authServices.getCurrentUserId()! as String, artworkId);
 
     print("Artwork ID: $artworkId");
     return artworkId;

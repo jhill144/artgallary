@@ -104,7 +104,8 @@ class _HomePageState extends State<HomePage> {
             TaskSnapshot taskSnapshot = await uploadTask;
             String downloadUrl = await taskSnapshot.ref.getDownloadURL();
 
-            String? currentArtistId = _authService.getCurrentUserId();
+            String? currentArtistId =
+                _authService.getCurrentUserId() as String?;
             if (currentArtistId != null) {
               String artworkId = _dataService.addArtistArtwork(
                   _titleController.text,
