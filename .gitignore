@@ -46,3 +46,4 @@ android/app/build.gradle
 .vscode/launch.json
 android/settings.gradle
 android/app/build.gradle
+*.gradle
