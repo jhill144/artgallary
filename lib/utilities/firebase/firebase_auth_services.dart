@@ -38,7 +38,7 @@ class FirebaseAuthServices {
     return null;
   }
 
-  User? getCurrentUserId() {
+  Future<User?> getCurrentUserId() async {
     User? user = _auth.currentUser;
     return user;
   }

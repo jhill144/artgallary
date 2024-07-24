@@ -1,12 +1,13 @@
-import 'package:artgallery/utilities/firebase/firebase_data_services.dart';
-import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:artgallery/utilities/navigation_menu.dart';
+import 'package:artgallery/models/artwork.dart';
 import 'package:artgallery/views/artwork_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,8 +17,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseAuthServices _authService = FirebaseAuthServices();
-  final FirebaseDataServices _dataService = FirebaseDataServices();
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +50,6 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (BuildContext context) {
         File? _imageFile;
-        String? _imageFileUrl; // For web
         bool _uploadError = false;
         String? _errorMessage;
         final TextEditingController _titleController = TextEditingController();
@@ -62,32 +62,23 @@ class _HomePageState extends State<HomePage> {
               await _picker.pickImage(source: ImageSource.gallery);
           if (pickedFile != null) {
             setState(() {
-              if (kIsWeb) {
-                _imageFileUrl = pickedFile.path;
-              } else {
-                _imageFile = File(pickedFile.path);
-              }
+              _imageFile = File(pickedFile.path);
             });
           }
         }
 
         Future<void> _uploadArtwork() async {
-          if ((kIsWeb && _imageFileUrl == null) ||
-              (!kIsWeb && _imageFile == null) ||
+          if (_imageFile == null ||
               _titleController.text.isEmpty ||
               _descriptionController.text.isEmpty) {
             return;
           }
 
           try {
-            String fileName = kIsWeb
-                ? _imageFileUrl!.split('/').last
-                : _imageFile!.path.split('/').last;
+            String fileName = _imageFile!.path.split('/').last;
             Reference storageRef =
                 FirebaseStorage.instance.ref().child('artworks/$fileName');
-            UploadTask uploadTask = kIsWeb
-                ? storageRef.putData(await XFile(_imageFileUrl!).readAsBytes())
-                : storageRef.putFile(_imageFile!);
+            UploadTask uploadTask = storageRef.putFile(_imageFile!);
 
             uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
               print('Task state: ${snapshot.state}');
@@ -104,14 +95,34 @@ class _HomePageState extends State<HomePage> {
             TaskSnapshot taskSnapshot = await uploadTask;
             String downloadUrl = await taskSnapshot.ref.getDownloadURL();
 
-            String? currentArtistId =
-                _authService.getCurrentUserId() as String?;
+            String? currentArtistId = _auth.currentUser?.uid;
             if (currentArtistId != null) {
-              String artworkId = _dataService.addArtistArtwork(
-                  _titleController.text,
-                  _descriptionController.text,
-                  downloadUrl) as String;
-              ;
+              DocumentSnapshot artistSnapshot = await FirebaseFirestore.instance
+                  .collection('artists')
+                  .doc(currentArtistId)
+                  .get();
+              Map<String, dynamic>? artistData =
+                  artistSnapshot.data() as Map<String, dynamic>?;
+              String artistUsername = artistData?['artistUsername'] ?? '';
+
+              DocumentReference docRef =
+                  await FirebaseFirestore.instance.collection('artworks').add({
+                'artworkID': '',
+                'artistID': currentArtistId,
+                'artistUsername': artistUsername,
+                'artworkName': _titleController.text,
+                'artworkDescription': _descriptionController.text,
+                'imageUrl': downloadUrl,
+                'artworkCreate': DateTime.now(),
+              });
+
+              String artworkId = docRef.id;
+              await docRef.update({'artworkID': artworkId});
+
+              await addArtworkToArtist(currentArtistId, artworkId);
+
+              print("Artwork ID: $artworkId");
+
               if (artworkId.isNotEmpty) {
                 if (WidgetsBinding.instance != null) {
                   WidgetsBinding.instance!.addPostFrameCallback((_) {
@@ -169,11 +180,9 @@ class _HomePageState extends State<HomePage> {
                       },
                       child: const Text('Select Image'),
                     ),
-                    if (_imageFile != null || _imageFileUrl != null) ...[
+                    if (_imageFile != null) ...[
                       const SizedBox(height: 10),
-                      kIsWeb
-                          ? Image.network(_imageFileUrl!, height: 100)
-                          : Image.file(_imageFile!, height: 100),
+                      Image.file(_imageFile!, height: 100),
                     ],
                     if (_uploadError) ...[
                       const SizedBox(height: 10),
@@ -204,5 +213,18 @@ class _HomePageState extends State<HomePage> {
         );
       },
     );
+  }
+
+  Future<void> addArtworkToArtist(String artistId, String artworkId) async {
+    try {
+      await FirebaseFirestore.instance
+          .collection('artists')
+          .doc(artistId)
+          .update({
+        'artworkIds': FieldValue.arrayUnion([artworkId]),
+      });
+    } catch (e) {
+      print('Error adding artwork to artist: $e');
+    }
   }
 }
