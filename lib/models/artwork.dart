@@ -10,7 +10,7 @@ class Artwork {
   String imageUrl;
   DateTime? artworkCreate;
   DateTime? artworkUpdate;
-  ArtworkAccess artworkAccess;
+  AccessLevel artworkAccess;
 
   Artwork({
     required this.artworkID,
@@ -21,7 +21,7 @@ class Artwork {
     required this.artworkCreate,
     required this.imageUrl,
     this.artworkUpdate,
-    this.artworkAccess = ArtworkAccess.artworkpublic,
+    this.artworkAccess = AccessLevel.artpublic,
   });
 
   Map<String, dynamic> toMap() {

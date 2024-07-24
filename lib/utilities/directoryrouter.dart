@@ -5,4 +5,5 @@ class DirectoryRouter {
   static String splashpage = '/splash';
   static String loginpage = '/login';
   static String registrationpage = '/registration';
+  static String editprofilepage = '/edit-profile'; 
 }

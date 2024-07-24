@@ -1,9 +1,17 @@
-enum ArtistAccess {
+enum AccessLevel {
   artpublic,
   artprivate,
 }
 
-enum ArtworkAccess {
-  artworkpublic,
-  artworkprivate,
+enum NotificationType {
+  notifLike,
+  notifShare,
+  notifMessage,
+  notifComment,
+}
+
+enum MessageType {
+  msgText,
+  msgImage,
+  msgVideo,
 }
