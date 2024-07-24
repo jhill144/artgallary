@@ -88,54 +88,55 @@ class ArtworkPage extends StatelessWidget {
               print('Artist data: $artistData');
 
               return SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (imageUrl.isNotEmpty)
-                      Image.network(
-                        imageUrl,
-                        height: 300,
-                        fit: BoxFit.cover,
-                        errorBuilder: (BuildContext context, Object exception,
-                            StackTrace? stackTrace) {
-                          return const Text('Could not load image');
-                        },
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10.0),
+                        child: Image.network(
+                          imageUrl,
+                          height: 300,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                          errorBuilder: (BuildContext context, Object exception,
+                              StackTrace? stackTrace) {
+                            return const Text('Could not load image');
+                          },
+                        ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            title,
-                            style: Theme.of(context).textTheme.headlineMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'by $artistUsername',
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Uploaded on ${dateCreated.toLocal().toString().split(' ')[0]}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            description,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          const SizedBox(height: 32),
-                          const Text(
-                            'Comments',
-                            style: TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          CommentSection(artworkId: artworkId),
-                        ],
-                      ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style:
+                          Theme.of(context).textTheme.headlineMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                     ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'by $artistUsername',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Uploaded on ${dateCreated.toLocal().toString().split(' ')[0]}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const Divider(height: 32),
+                    const Text(
+                      'Comments',
+                      style:
+                          TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 8),
+                    CommentSection(artworkId: artworkId),
                   ],
                 ),
               );
@@ -221,7 +222,8 @@ class CommentSection extends StatelessWidget {
                     print('Commenter data: $userData');
 
                     return ListTile(
-                      title: Text(username),
+                      title: Text(username,
+                          style: const TextStyle(fontWeight: FontWeight.bold)),
                       subtitle: Text(comment),
                     );
                   },
@@ -233,8 +235,14 @@ class CommentSection extends StatelessWidget {
         const SizedBox(height: 10),
         TextField(
           controller: _commentController,
-          decoration: const InputDecoration(labelText: 'Add a comment'),
+          decoration: InputDecoration(
+            labelText: 'Add a comment',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+          ),
         ),
+        const SizedBox(height: 10),
         ElevatedButton(
           onPressed: () async {
             if (_commentController.text.isNotEmpty) {
