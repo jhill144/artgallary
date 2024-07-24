@@ -5,14 +5,14 @@ class Artist {
   String artistID;
   String artistEmail;
   String artistUsername;
-  ArtistAccess artistAccess;
+  AccessLevel artistAccess;
   List<String> artworkID;
 
   Artist({
     required this.artistID,
     required this.artistEmail,
     required this.artistUsername,
-    this.artistAccess = ArtistAccess.artpublic,
+    this.artistAccess = AccessLevel.artpublic,
     required this.artworkID,
   });
 
