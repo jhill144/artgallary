@@ -1,4 +1,3 @@
-import 'package:artgallery/utilities/directoryrouter.dart';
 import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
 import 'package:artgallery/utilities/navigation_menu.dart';
 import 'package:flutter/material.dart';
@@ -6,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'artwork_page.dart';
 import 'package:artgallery/views/edit_profile_page.dart';
-import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;
@@ -224,44 +222,48 @@ class _ProfilePageState extends State<ProfilePage> {
                   : const Icon(Icons.image),
               title: Text(title),
               subtitle: Text(description),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit),
-                    onPressed: () {
-                      // Add logic to edit the artwork
-                    },
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () async {
-                      bool? confirmDelete = await showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('Delete Artwork'),
-                          content: const Text(
-                              'Are you sure you want to delete this artwork?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text('Cancel'),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text('Delete'),
-                            ),
-                          ],
+              trailing: isCurrentUser
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: () {
+                            // Add logic to edit the artwork
+                          },
                         ),
-                      );
+                        IconButton(
+                          icon: const Icon(Icons.delete),
+                          onPressed: () async {
+                            bool? confirmDelete = await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Artwork'),
+                                content: const Text(
+                                    'Are you sure you want to delete this artwork?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                            );
 
-                      if (confirmDelete == true) {
-                        await _deleteArtwork(artworkId);
-                      }
-                    },
-                  ),
-                ],
-              ),
+                            if (confirmDelete == true) {
+                              await _deleteArtwork(artworkId);
+                            }
+                          },
+                        ),
+                      ],
+                    )
+                  : null,
               onTap: () {
                 Navigator.push(
                   context,
