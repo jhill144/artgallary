@@ -12,7 +12,10 @@ class FirebaseDataServices {
   }
 
   Stream<QuerySnapshot<Map<String, dynamic>>> getAllArtwork() {
-    return _fireStore.collection('artworks').snapshots();
+    return _fireStore
+        .collection('artworks')
+        .orderBy('artworkCreate', descending: true)
+        .snapshots();
   }
 
   Future<void> createArtistDocument(String uid, String email) async {
