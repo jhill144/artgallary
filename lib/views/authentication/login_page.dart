@@ -119,7 +119,7 @@ class _LoginPageState extends State<LoginPage> {
                             onPressed: () {
                               context.goNamed(DirectoryRouter.registrationpage);
                             },
-                            child: const Text('Not Yet Registrered?')),
+                            child: const Text('Not Yet Registered?')),
                       ],
                     ),
                   )),
