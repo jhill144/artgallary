@@ -1,14 +1,17 @@
 import 'package:artgallery/utilities/directoryrouter.dart';
+import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
 import 'package:artgallery/utilities/navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
 import 'artwork_page.dart';
+import 'package:artgallery/views/edit_profile_page.dart';
 import 'package:go_router/go_router.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  final String? userId;
+
+  const ProfilePage({super.key, this.userId});
 
   @override
   _ProfilePageState createState() => _ProfilePageState();
@@ -16,8 +19,10 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   String bio = "Artist and photographer.";
-  String profilePictureUrl = "assets/profile_picture.jpg";
-  String username = "";
+  String profilePictureUrl =
+      'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
+  String username = "Your Name";
+  bool isCurrentUser = false;
 
   @override
   void initState() {
@@ -28,11 +33,26 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserProfile() async {
     try {
       final FirebaseAuthServices authService = FirebaseAuthServices();
-      final user = await authService.getCurrentUserId();
-      final userName = await authService.getUsername(user?.uid);
-      setState(() {
-        username = userName ?? "Your Name";
-      });
+      final currentUser = await authService.getCurrentUser();
+      final userId = widget.userId ?? currentUser?.uid;
+
+      if (userId != null) {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('artists')
+            .doc(userId)
+            .get();
+        final userName = userDoc.data()?['artistUsername'] ?? username;
+        final profilePicUrl =
+            userDoc.data()?['profilePictureUrl'] ?? profilePictureUrl;
+        final userBio = userDoc.data()?['bio'] ?? bio;
+
+        setState(() {
+          username = userName;
+          profilePictureUrl = profilePicUrl;
+          bio = userBio;
+          isCurrentUser = currentUser != null && currentUser.uid == userId;
+        });
+      }
     } catch (e) {
       print("Failed to load user profile: $e");
     }
@@ -63,7 +83,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           CircleAvatar(
             radius: 50,
-            backgroundImage: AssetImage(profilePictureUrl),
+            backgroundImage: NetworkImage(profilePictureUrl),
           ),
           const SizedBox(height: 10),
           Text(
@@ -76,27 +96,30 @@ class _ProfilePageState extends State<ProfilePage> {
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
           const SizedBox(height: 10),
-          ElevatedButton(
-            onPressed: () async {
-              final result = await context.pushNamed(
-                DirectoryRouter.editprofilepage,
-                extra: {
-                  'currentName': username,
-                  'currentBio': bio,
-                  'currentProfilePictureUrl': profilePictureUrl,
-                },
-              );
+          if (isCurrentUser)
+            ElevatedButton(
+              onPressed: () async {
+                final result = await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProfilePage(
+                      currentName: username,
+                      currentBio: bio,
+                      currentProfilePictureUrl: profilePictureUrl,
+                    ),
+                  ),
+                );
 
-              if (result != null && result is Map<String, dynamic>) {
-                setState(() {
-                  username = result['name'] as String;
-                  bio = result['bio'] as String;
-                  profilePictureUrl = result['profilePictureUrl'] as String;
-                });
-              }
-            },
-            child: const Text('Edit Profile'),
-          ),
+                if (result != null && result is Map<String, dynamic>) {
+                  setState(() {
+                    username = result['name'] as String;
+                    bio = result['bio'] as String;
+                    profilePictureUrl = result['profilePictureUrl'] as String;
+                  });
+                }
+              },
+              child: const Text('Edit Profile'),
+            ),
         ],
       ),
     );
@@ -146,7 +169,8 @@ class _ProfilePageState extends State<ProfilePage> {
           return const Center(child: Text('User not found'));
         }
 
-        return _buildArtworkList(user.uid);
+        final userId = widget.userId ?? user.uid;
+        return _buildArtworkList(userId);
       },
     );
   }
