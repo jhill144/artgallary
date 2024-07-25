@@ -1,7 +1,8 @@
+import 'package:artgallery/views/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:artgallery/views/profile_page.dart';
+import 'package:intl/intl.dart';
 
 class ArtworkPage extends StatelessWidget {
   final String artworkId;
@@ -127,7 +128,7 @@ class ArtworkPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Uploaded on ${dateCreated.toLocal().toString().split(' ')[0]}',
+                      'Uploaded on ${DateFormat('MM-dd-yyyy').format(dateCreated)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
@@ -194,6 +195,9 @@ class CommentSection extends StatelessWidget {
                     snapshot.data!.docs[index].data() as Map<String, dynamic>;
                 var comment = commentData['comment'] ?? '';
                 var commenterId = commentData['commenterID'] ?? '';
+                var timestamp =
+                    (commentData['timestamp'] as Timestamp?)?.toDate() ??
+                        DateTime.now();
 
                 return FutureBuilder<DocumentSnapshot>(
                   future: FirebaseFirestore.instance
@@ -213,7 +217,25 @@ class CommentSection extends StatelessWidget {
                     if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
                       return ListTile(
                         title: const Text('Unknown user'),
-                        subtitle: Text(comment),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(comment),
+                                Text(
+                                  DateFormat('MM-dd-yyyy').format(timestamp),
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                )
+                              ],
+                            ),
+                            Text(
+                              DateFormat('hh:mm a').format(timestamp),
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                       );
                     }
 
@@ -244,7 +266,25 @@ class CommentSection extends StatelessWidget {
                               fontWeight: FontWeight.bold, color: Colors.blue),
                         ),
                       ),
-                      subtitle: Text(comment),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(comment),
+                              Text(
+                                DateFormat('MM-dd-yyyy').format(timestamp),
+                                style: Theme.of(context).textTheme.bodySmall,
+                              )
+                            ],
+                          ),
+                          Text(
+                            DateFormat('hh:mm a').format(timestamp),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
