@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:artgallery/views/profile_page.dart';
 
 class ArtworkPage extends StatelessWidget {
   final String artworkId;
@@ -33,18 +34,15 @@ class ArtworkPage extends StatelessWidget {
           }
 
           if (snapshot.hasError) {
-            print('Error fetching artwork: ${snapshot.error}');
             return const Center(child: Text('Something went wrong'));
           }
 
           if (!snapshot.hasData || !snapshot.data!.exists) {
-            print('Artwork not found');
             return const Center(child: Text('Artwork not found'));
           }
 
           var artworkData = snapshot.data?.data() as Map<String, dynamic>?;
           if (artworkData == null) {
-            print('No data available for this artwork');
             return const Center(
                 child: Text('No data available for this artwork'));
           }
@@ -58,8 +56,6 @@ class ArtworkPage extends StatelessWidget {
               (artworkData['artworkCreate'] as Timestamp?)?.toDate() ??
                   DateTime.now();
 
-          print('Artwork data: $artworkData');
-
           return FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
                 .collection('artists')
@@ -71,12 +67,10 @@ class ArtworkPage extends StatelessWidget {
               }
 
               if (artistSnapshot.hasError) {
-                print('Error fetching artist: ${artistSnapshot.error}');
                 return const Center(child: Text('Something went wrong'));
               }
 
               if (!artistSnapshot.hasData || !artistSnapshot.data!.exists) {
-                print('Artist not found');
                 return const Center(child: Text('Artist not found'));
               }
 
@@ -84,8 +78,6 @@ class ArtworkPage extends StatelessWidget {
                   artistSnapshot.data?.data() as Map<String, dynamic>?;
               var artistUsername =
                   artistData?['artistUsername'] ?? 'Unknown artist';
-
-              print('Artist data: $artistData');
 
               return SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
@@ -116,9 +108,22 @@ class ArtworkPage extends StatelessWidget {
                               ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'by $artistUsername',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProfilePage(userId: artistId),
+                          ),
+                        );
+                      },
+                      child: Text(
+                        'by $artistUsername',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(color: Colors.blue),
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -152,6 +157,8 @@ class ArtworkPage extends StatelessWidget {
 class CommentSection extends StatelessWidget {
   final String artworkId;
   final TextEditingController _commentController = TextEditingController();
+  final String defaultProfilePictureUrl =
+      'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
 
   CommentSection({super.key, required this.artworkId});
 
@@ -172,7 +179,6 @@ class CommentSection extends StatelessWidget {
             }
 
             if (snapshot.hasError) {
-              print('Error fetching comments: ${snapshot.error}');
               return const Center(child: Text('Something went wrong'));
             }
 
@@ -189,8 +195,6 @@ class CommentSection extends StatelessWidget {
                 var comment = commentData['comment'] ?? '';
                 var commenterId = commentData['commenterID'] ?? '';
 
-                print('Comment data: $commentData');
-
                 return FutureBuilder<DocumentSnapshot>(
                   future: FirebaseFirestore.instance
                       .collection('artists')
@@ -203,12 +207,10 @@ class CommentSection extends StatelessWidget {
                     }
 
                     if (userSnapshot.hasError) {
-                      print('Error fetching commenter: ${userSnapshot.error}');
                       return const Center(child: Text('Something went wrong'));
                     }
 
                     if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                      print('Commenter not found');
                       return ListTile(
                         title: const Text('Unknown user'),
                         subtitle: Text(comment),
@@ -219,12 +221,29 @@ class CommentSection extends StatelessWidget {
                         userSnapshot.data?.data() as Map<String, dynamic>?;
                     var username =
                         userData?['artistUsername'] ?? 'Unknown user';
-
-                    print('Commenter data: $userData');
+                    var profilePictureUrl = userData?['profilePictureUrl'] ??
+                        defaultProfilePictureUrl;
 
                     return ListTile(
-                      title: Text(username,
-                          style: const TextStyle(fontWeight: FontWeight.bold)),
+                      leading: CircleAvatar(
+                        backgroundImage: NetworkImage(profilePictureUrl),
+                      ),
+                      title: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfilePage(userId: commenterId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          username,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.blue),
+                        ),
+                      ),
                       subtitle: Text(comment),
                     );
                   },
