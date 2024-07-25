@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class FirebaseDataServices {
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
   final FirebaseAuthServices _authServices = FirebaseAuthServices();
+  final String defaultPfpUrl =
+      'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
 
   Future<void> createArtistDocument(String uid, String email) async {
     DocumentReference artistDoc = _fireStore.collection('artists').doc(uid);
@@ -14,6 +16,7 @@ class FirebaseDataServices {
         'artistID': uid,
         'artistEmail': email,
         'artistUsername': username,
+        'artistPfpUrl': defaultPfpUrl,
         'artworkIds': [],
       });
     } else {
@@ -28,7 +31,7 @@ class FirebaseDataServices {
   }
 
   Future<Map<String, dynamic>?> getCurrentArtist() {
-    return getSpecificArtist(_authServices.getCurrentUserId() as String?);
+    return getSpecificArtist(_authServices.getCurrentUser() as String?);
   }
 
   Future<Map<String, dynamic>?> getSpecificArtist(String? uid) async {
@@ -52,7 +55,7 @@ class FirebaseDataServices {
     DocumentReference docRef =
         await FirebaseFirestore.instance.collection('artworks').add({
       'artworkID': '',
-      'artistID': _authServices.getCurrentUserId(),
+      'artistID': _authServices.getCurrentUser(),
       'artistUsername': artistUsername,
       'artworkName': title,
       'artworkDescription': description,
@@ -64,7 +67,7 @@ class FirebaseDataServices {
     await docRef.update({'artworkID': artworkId});
 
     await addArtworkToArtist(
-        _authServices.getCurrentUserId()! as String, artworkId);
+        _authServices.getCurrentUser() as String, artworkId);
 
     print("Artwork ID: $artworkId");
     return artworkId;

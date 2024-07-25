@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class FirebaseAuthServices {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final String defaultPfpUrl =
+      'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
 
   Future<User?> signUpWithEmailAndPassword(
       String email, String password) async {
@@ -38,7 +40,7 @@ class FirebaseAuthServices {
     return null;
   }
 
-  Future<User?> getCurrentUserId() async {
+  Future<User?> getCurrentUser() async {
     User? user = _auth.currentUser;
     return user;
   }
@@ -65,6 +67,7 @@ class FirebaseAuthServices {
         'artistID': uid,
         'artistEmail': email,
         'artistUsername': username,
+        'artistPfpUrl': defaultPfpUrl,
         'artworkIds': [],
       });
     } else {
