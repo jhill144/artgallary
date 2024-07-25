@@ -1,4 +1,6 @@
 import 'package:artgallery/utilities/firebase/firebase_data_services.dart';
+import 'package:artgallery/views/artwork_page.dart';
+import 'package:artgallery/views/profile_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
@@ -46,6 +48,7 @@ class _ArtworkFeedState extends State<ArtworkFeed> {
                 var artworkData =
                     artworks[index].data() as Map<String, dynamic>;
                 var artworkId = artworks[index].id;
+                var artistId = artworkData['artistID'] ?? '';
                 var artistusername = artworkData['artistUsername'];
                 var imageUrl = artworkData['imageUrl'] ?? '';
                 var title = artworkData['artworkName'] ?? 'No title';
@@ -54,6 +57,7 @@ class _ArtworkFeedState extends State<ArtworkFeed> {
 
                 return ArtworkCard(
                     artworkId: artworkId,
+                    artistId: artistId,
                     artist: artistusername,
                     artworkTitle: title,
                     artworkDescription: description,
@@ -67,12 +71,14 @@ class ArtworkCard extends StatelessWidget {
   const ArtworkCard({
     super.key,
     required this.artworkId,
+    required this.artistId,
     required this.artist,
     required this.artworkTitle,
     required this.artworkDescription,
     required this.artwork,
   });
   final String artworkId;
+  final String artistId;
   final String artist;
   final String artworkTitle;
   final String artworkDescription;
@@ -80,36 +86,47 @@ class ArtworkCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-        aspectRatio: 13 / 9,
-        child: Column(children: [
-          Card(
-              color: Colors.blueAccent,
-              shadowColor: Colors.grey,
-              child: Padding(
-                padding: const EdgeInsets.all(5),
-                child: Column(children: <Widget>[
-                  ArtistDetails(
-                    username: artist,
-                  ),
-                  ArtworkImage(
-                    artUrl: artwork,
-                  ),
-                  ArtworkDetails(
-                    title: artworkTitle,
-                    description: artworkDescription,
-                  ),
-                  const ArtworkReactions(),
-                ]),
-              )),
-          const Divider(
-            height: 5,
-            thickness: 1,
-            indent: 0,
-            endIndent: 0,
-            color: Colors.black,
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ArtworkPage(artworkId: artworkId),
           ),
-        ]));
+        );
+      },
+      child: AspectRatio(
+          aspectRatio: 13 / 9,
+          child: Column(children: [
+            Card(
+                color: Colors.blueAccent,
+                shadowColor: Colors.grey,
+                child: Padding(
+                  padding: const EdgeInsets.all(5),
+                  child: Column(children: <Widget>[
+                    ArtistDetails(
+                      username: artist,
+                      userId: artistId,
+                    ),
+                    ArtworkImage(
+                      artUrl: artwork,
+                    ),
+                    ArtworkDetails(
+                      title: artworkTitle,
+                      description: artworkDescription,
+                    ),
+                    const ArtworkReactions(),
+                  ]),
+                )),
+            const Divider(
+              height: 5,
+              thickness: 1,
+              indent: 0,
+              endIndent: 0,
+              color: Colors.black,
+            ),
+          ])),
+    );
   }
 }
 
@@ -117,18 +134,32 @@ class ArtistDetails extends StatelessWidget {
   const ArtistDetails({
     super.key,
     required this.username,
+    required this.userId,
   });
   final String username;
+  final String userId;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        const Icon(Icons.person_2),
-        Text(username),
-      ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(userId: userId),
+          ),
+        );
+      },
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          const Icon(Icons.person_2),
+          Text(
+            username,
+          ),
+        ],
+      ),
     );
   }
 }
