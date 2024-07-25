@@ -1,11 +1,24 @@
 import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
+import 'package:artgallery/views/artwork_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class FirebaseDataServices {
   final FirebaseFirestore _fireStore = FirebaseFirestore.instance;
   final FirebaseAuthServices _authServices = FirebaseAuthServices();
   final String defaultPfpUrl =
       'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
+
+  FirebaseFirestore getStore() {
+    return _fireStore;
+  }
+
+  Stream<QuerySnapshot<Map<String, dynamic>>> getAllArtwork() {
+    return _fireStore
+        .collection('artworks')
+        .orderBy('artworkCreate', descending: true)
+        .snapshots();
+  }
 
   Future<void> createArtistDocument(String uid, String email) async {
     DocumentReference artistDoc = _fireStore.collection('artists').doc(uid);
@@ -38,12 +51,6 @@ class FirebaseDataServices {
     DocumentSnapshot artistSnapshot =
         await FirebaseFirestore.instance.collection('artists').doc(uid).get();
     return artistSnapshot.data() as Map<String, dynamic>?;
-  }
-
-  Future<Map<String, dynamic>?> getAllArtwork() async {
-    DocumentSnapshot artWorkSnapshot =
-        await FirebaseFirestore.instance.collection('artworks').doc().get();
-    return artWorkSnapshot.data() as Map<String, dynamic>?;
   }
 
   Future<String> addArtistArtwork(

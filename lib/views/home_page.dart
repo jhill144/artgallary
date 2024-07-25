@@ -1,10 +1,11 @@
+import 'package:artgallery/utilities/firebase/firebase_data_services.dart';
+import 'package:artgallery/views/homepage_feed/artwork_feed.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:artgallery/utilities/navigation_menu.dart';
-import 'package:artgallery/models/artwork.dart';
 import 'package:artgallery/views/artwork_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:artgallery/utilities/firebase/firebase_auth_services.dart';
@@ -19,6 +20,16 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseAuthServices _authService = FirebaseAuthServices();
+
+  /*@override
+  void initState() {
+    Map<String, dynamic>? feedList =
+        _dataServices.getAllArtwork() as Map<String, dynamic>?;
+    print('Test Line');
+    print(feedList?.length);
+    print('End Test Line');
+    super.initState();
+  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +51,9 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: const Center(),
+      body: const Center(
+        child: ArtworkFeed(),
+      ),
       bottomNavigationBar: const NavigationMenu(currentIndex: 0),
     );
   }
