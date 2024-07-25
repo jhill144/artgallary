@@ -5,6 +5,7 @@ class Artist {
   String artistID;
   String artistEmail;
   String artistUsername;
+  String artistPfpUrl;
   AccessLevel artistAccess;
   List<String> artworkID;
 
@@ -12,6 +13,7 @@ class Artist {
     required this.artistID,
     required this.artistEmail,
     required this.artistUsername,
+    required this.artistPfpUrl,
     this.artistAccess = AccessLevel.artpublic,
     required this.artworkID,
   });
@@ -22,6 +24,7 @@ class Artist {
       'artistUsername': artistUsername,
       'artistEmail': artistEmail,
       'artworkID': artworkID,
+      'artistPfpUrl': artistPfpUrl,
     };
   }
 
@@ -30,6 +33,7 @@ class Artist {
       artistID: map['artistID'] ?? '',
       artistUsername: map['artistUsername'] ?? '',
       artistEmail: map['artistEmail'] ?? '',
+      artistPfpUrl: map['artistPfpUrl'] ?? '',
       artworkID: List<String>.from(map['artworkID'] ?? []),
     );
   }
