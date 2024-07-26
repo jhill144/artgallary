@@ -4,7 +4,6 @@ import 'package:artgallery/controller/router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:artgallery/utilities/theme_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,11 +12,9 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  final prefs = await SharedPreferences.getInstance();
-
   runApp(
     ChangeNotifierProvider(
-      create: (context) => ThemeProvider(prefs),
+      create: (context) => ThemeProvider(),
       child: const MyApp(),
     ),
   );
