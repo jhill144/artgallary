@@ -1,7 +1,7 @@
-import 'package:artgallery/views/profile_page.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:artgallery/views/profile_page.dart';
 import 'package:intl/intl.dart';
 
 class ArtworkPage extends StatelessWidget {
@@ -128,7 +128,7 @@ class ArtworkPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Uploaded on ${DateFormat('MM-dd-yyyy').format(dateCreated)}',
+                      'Uploaded on ${DateFormat('MM-dd-yyyy').format(dateCreated)} at ${DateFormat('hh:mm a').format(dateCreated)}',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                     const SizedBox(height: 16),
@@ -155,23 +155,49 @@ class ArtworkPage extends StatelessWidget {
   }
 }
 
-class CommentSection extends StatelessWidget {
+class CommentSection extends StatefulWidget {
   final String artworkId;
+
+  const CommentSection({super.key, required this.artworkId});
+
+  @override
+  _CommentSectionState createState() => _CommentSectionState();
+}
+
+class _CommentSectionState extends State<CommentSection> {
   final TextEditingController _commentController = TextEditingController();
   final String defaultProfilePictureUrl =
       'https://www.pngkey.com/png/detail/115-1150152_default-profile-picture-avatar-png-green.png';
 
-  CommentSection({super.key, required this.artworkId});
+  Future<void> _toggleLikeComment(String commentId, List<dynamic> likes) async {
+    String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null) return;
+
+    DocumentReference commentRef = FirebaseFirestore.instance
+        .collection('artworks')
+        .doc(widget.artworkId)
+        .collection('comments')
+        .doc(commentId);
+
+    if (likes.contains(currentUserId)) {
+      await commentRef.update({
+        'likes': FieldValue.arrayRemove([currentUserId])
+      });
+    } else {
+      await commentRef.update({
+        'likes': FieldValue.arrayUnion([currentUserId])
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('artworks')
-              .doc(artworkId)
+              .doc(widget.artworkId)
               .collection('comments')
               .snapshots(),
           builder: (context, snapshot) {
@@ -189,15 +215,21 @@ class CommentSection extends StatelessWidget {
 
             return ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: snapshot.data!.docs.length,
               itemBuilder: (context, index) {
                 var commentData =
                     snapshot.data!.docs[index].data() as Map<String, dynamic>;
+                var commentId = snapshot.data!.docs[index].id;
                 var comment = commentData['comment'] ?? '';
                 var commenterId = commentData['commenterID'] ?? '';
+                var likes = commentData['likes'] ?? [];
                 var timestamp =
                     (commentData['timestamp'] as Timestamp?)?.toDate() ??
                         DateTime.now();
+
+                var formattedTimestamp =
+                    DateFormat('MM-dd-yyyy hh:mm a').format(timestamp);
 
                 return FutureBuilder<DocumentSnapshot>(
                   future: FirebaseFirestore.instance
@@ -215,27 +247,14 @@ class CommentSection extends StatelessWidget {
                     }
 
                     if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                      return ListTile(
-                        title: const Text('Unknown user'),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(comment),
-                                Text(
-                                  DateFormat('MM-dd-yyyy').format(timestamp),
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                )
-                              ],
-                            ),
-                            Text(
-                              DateFormat('hh:mm a').format(timestamp),
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
+                      return _buildCommentTile(
+                        context: context,
+                        username: 'Unknown user',
+                        profilePictureUrl: defaultProfilePictureUrl,
+                        comment: comment,
+                        formattedTimestamp: formattedTimestamp,
+                        likes: likes,
+                        commentId: commentId,
                       );
                     }
 
@@ -246,45 +265,15 @@ class CommentSection extends StatelessWidget {
                     var profilePictureUrl = userData?['profilePictureUrl'] ??
                         defaultProfilePictureUrl;
 
-                    return ListTile(
-                      leading: CircleAvatar(
-                        backgroundImage: NetworkImage(profilePictureUrl),
-                      ),
-                      title: GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  ProfilePage(userId: commenterId),
-                            ),
-                          );
-                        },
-                        child: Text(
-                          username,
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold, color: Colors.blue),
-                        ),
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(comment),
-                              Text(
-                                DateFormat('MM-dd-yyyy').format(timestamp),
-                                style: Theme.of(context).textTheme.bodySmall,
-                              )
-                            ],
-                          ),
-                          Text(
-                            DateFormat('hh:mm a').format(timestamp),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
+                    return _buildCommentTile(
+                      context: context,
+                      username: username,
+                      profilePictureUrl: profilePictureUrl,
+                      comment: comment,
+                      formattedTimestamp: formattedTimestamp,
+                      likes: likes,
+                      commentId: commentId,
+                      commenterId: commenterId,
                     );
                   },
                 );
@@ -293,37 +282,111 @@ class CommentSection extends StatelessWidget {
           },
         ),
         const SizedBox(height: 10),
-        TextField(
-          controller: _commentController,
-          decoration: InputDecoration(
-            labelText: 'Add a comment',
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10.0),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: _commentController,
+                decoration: InputDecoration(
+                  labelText: 'Add a comment',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 10),
-        ElevatedButton(
-          onPressed: () async {
-            if (_commentController.text.isNotEmpty) {
-              String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
-              if (currentUserId != null) {
-                await FirebaseFirestore.instance
-                    .collection('artworks')
-                    .doc(artworkId)
-                    .collection('comments')
-                    .add({
-                  'comment': _commentController.text,
-                  'commenterID': currentUserId,
-                  'timestamp': Timestamp.now(),
-                });
-                _commentController.clear();
-              }
-            }
-          },
-          child: const Text('Submit'),
+            const SizedBox(width: 10),
+            ElevatedButton(
+              onPressed: () async {
+                if (_commentController.text.isNotEmpty) {
+                  String? currentUserId =
+                      FirebaseAuth.instance.currentUser?.uid;
+                  if (currentUserId != null) {
+                    await FirebaseFirestore.instance
+                        .collection('artworks')
+                        .doc(widget.artworkId)
+                        .collection('comments')
+                        .add({
+                      'comment': _commentController.text,
+                      'commenterID': currentUserId,
+                      'timestamp': Timestamp.now(),
+                      'likes': [],
+                    });
+                    _commentController.clear();
+                  }
+                }
+              },
+              child: const Text('Submit'),
+            ),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _buildCommentTile({
+    required BuildContext context,
+    required String username,
+    required String profilePictureUrl,
+    required String comment,
+    required String formattedTimestamp,
+    required List<dynamic> likes,
+    required String commentId,
+    String? commenterId,
+  }) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundImage: NetworkImage(profilePictureUrl),
+      ),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (commenterId != null) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ProfilePage(userId: commenterId),
+                  ),
+                );
+              }
+            },
+            child: Text(
+              username,
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.blue),
+            ),
+          ),
+          Column(
+            children: [
+              IconButton(
+                icon: Icon(
+                  likes.contains(FirebaseAuth.instance.currentUser?.uid)
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                ),
+                onPressed: () => _toggleLikeComment(commentId, likes),
+              ),
+              Text(
+                '${likes.length} likes',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ),
+        ],
+      ),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(comment),
+          const SizedBox(height: 5),
+          Text(
+            formattedTimestamp,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ),
     );
   }
 }
