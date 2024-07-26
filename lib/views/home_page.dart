@@ -127,6 +127,8 @@ class _HomePageState extends State<HomePage> {
                 'artworkDescription': _descriptionController.text,
                 'imageUrl': downloadUrl,
                 'artworkCreate': DateTime.now(),
+                'likes': 0,
+                'sharedBy': [],
               });
 
               String artworkId = docRef.id;
