@@ -11,6 +11,8 @@ class Artwork {
   DateTime? artworkCreate;
   DateTime? artworkUpdate;
   AccessLevel artworkAccess;
+  List<String> likes;
+  List<String> sharedBy;
 
   Artwork({
     required this.artworkID,
@@ -22,6 +24,8 @@ class Artwork {
     required this.imageUrl,
     this.artworkUpdate,
     this.artworkAccess = AccessLevel.artpublic,
+    this.likes = const [],
+    this.sharedBy = const [],
   });
 
   Map<String, dynamic> toMap() {
@@ -35,6 +39,8 @@ class Artwork {
       'dateCreated': artworkCreate,
       'artworkUpdate': artworkUpdate,
       'artworkAccess': artworkAccess.toString(),
+      'likes': likes,
+      'sharedBy': sharedBy,
     };
   }
 }
