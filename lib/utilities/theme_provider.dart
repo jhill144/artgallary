@@ -3,10 +3,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ThemeProvider with ChangeNotifier {
   bool _isDarkTheme = false;
+  final SharedPreferences _prefs;
 
   bool get isDarkTheme => _isDarkTheme;
 
-  ThemeProvider() {
+  ThemeProvider(this._prefs) {
     _loadTheme();
   }
 
