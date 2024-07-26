@@ -3,8 +3,9 @@ import 'package:artgallery/utilities/navigation_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'artwork_page.dart';
+import 'package:artgallery/views/artwork_page.dart';
 import 'package:artgallery/views/edit_profile_page.dart';
+import 'package:intl/intl.dart';
 
 class ProfilePage extends StatefulWidget {
   final String? userId;
@@ -297,14 +298,219 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildSharedArtSection() {
-    return const Center(
-      child: Text('Shared Art will be displayed here'),
+    return FutureBuilder<User?>(
+      future: _getCurrentUser(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        User? user = snapshot.data;
+        if (user == null) {
+          return const Center(child: Text('User not found'));
+        }
+
+        final userId = widget.userId ?? user.uid;
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('artworks')
+              .where('sharedBy', arrayContains: userId)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              print('Error fetching shared artworks: ${snapshot.error}');
+              return const Center(child: Text('Something went wrong'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('No shared artworks found'));
+            }
+
+            List<DocumentSnapshot> artworks = snapshot.data!.docs;
+
+            return ListView.builder(
+              itemCount: artworks.length,
+              itemBuilder: (context, index) {
+                var artworkData =
+                    artworks[index].data() as Map<String, dynamic>;
+                var artworkId = artworks[index].id;
+                var imageUrl = artworkData['imageUrl'] ?? '';
+                var title = artworkData['artworkName'] ?? 'No title';
+                var description =
+                    artworkData['artworkDescription'] ?? 'No description';
+
+                return ListTile(
+                  leading: imageUrl.isNotEmpty
+                      ? Image.network(
+                          imageUrl,
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.image),
+                        )
+                      : const Icon(Icons.image),
+                  title: Text(title),
+                  subtitle: Text(description),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ArtworkPage(artworkId: artworkId),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildInteractionsSection() {
-    return const Center(
-      child: Text('Comments, Likes, and Shared Work will be displayed here'),
+    return FutureBuilder<User?>(
+      future: _getCurrentUser(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Something went wrong'));
+        }
+
+        User? user = snapshot.data;
+        if (user == null) {
+          return const Center(child: Text('User not found'));
+        }
+
+        final userId = widget.userId ?? user.uid;
+        return FutureBuilder<List<Map<String, dynamic>>>(
+          future: _fetchInteractions(userId),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError || !snapshot.hasData) {
+              return const Center(child: Text('Something went wrong'));
+            }
+
+            List<Map<String, dynamic>> interactions = snapshot.data ?? [];
+
+            if (interactions.isEmpty) {
+              return const Center(child: Text('No interactions found'));
+            }
+
+            return ListView.builder(
+              itemCount: interactions.length,
+              itemBuilder: (context, index) {
+                var interaction = interactions[index];
+                var comment = interaction['comment'];
+                var artworkData = interaction['artwork'];
+                var artworkId = artworkData?['artworkID'];
+                var imageUrl = artworkData?['imageUrl'] ?? '';
+                var title = artworkData?['artworkName'] ?? 'No title';
+
+                return ListTile(
+                  title: Row(
+                    children: [
+                      Expanded(child: Text(comment)),
+                      imageUrl.isNotEmpty
+                          ? Image.network(
+                              imageUrl,
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.image),
+                            )
+                          : const Icon(Icons.image),
+                    ],
+                  ),
+                  onTap: () {
+                    if (artworkId != null) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              ArtworkPage(artworkId: artworkId),
+                        ),
+                      );
+                    }
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchInteractions(String userId) async {
+    List<Map<String, dynamic>> interactions = [];
+    DateFormat dateFormat = DateFormat('M-d-yyyy');
+    DateFormat timeFormat = DateFormat('h:mm a');
+
+    var commentsQuery = await FirebaseFirestore.instance
+        .collectionGroup('comments')
+        .where('commenterID', isEqualTo: userId)
+        .get();
+
+    for (var commentDoc in commentsQuery.docs) {
+      var commentData = commentDoc.data();
+      var comment = commentData['comment'];
+      var timestamp =
+          (commentData['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+      var artworkId = commentDoc.reference.parent.parent?.id;
+      if (artworkId != null) {
+        var artworkDoc = await FirebaseFirestore.instance
+            .collection('artworks')
+            .doc(artworkId)
+            .get();
+        var artworkData = artworkDoc.data();
+
+        if (artworkData != null) {
+          interactions.add({
+            'comment':
+                'Commented: "$comment"\non ${dateFormat.format(timestamp)} at ${timeFormat.format(timestamp)}',
+            'artwork': artworkData,
+            'timestamp': timestamp,
+          });
+        }
+      }
+    }
+
+    var likesQuery = await FirebaseFirestore.instance
+        .collection('artworks')
+        .where('likes', arrayContains: userId)
+        .get();
+
+    for (var artworkDoc in likesQuery.docs) {
+      var artworkData = artworkDoc.data();
+      var title = artworkData['artworkName'];
+      var timestamp = DateTime.now();
+      interactions.add({
+        'comment':
+            'Liked: "$title"\non ${dateFormat.format(timestamp)} at ${timeFormat.format(timestamp)}',
+        'artwork': artworkData,
+        'timestamp': timestamp,
+      });
+    }
+
+    interactions.sort((a, b) => b['timestamp'].compareTo(a['timestamp']));
+
+    return interactions;
   }
 }
