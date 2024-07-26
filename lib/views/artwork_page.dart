@@ -56,6 +56,8 @@ class ArtworkPage extends StatelessWidget {
           var dateCreated =
               (artworkData['artworkCreate'] as Timestamp?)?.toDate() ??
                   DateTime.now();
+          var likes = List<String>.from(artworkData['likes'] ?? []);
+          var shares = List<String>.from(artworkData['shares'] ?? []);
 
           return FutureBuilder<DocumentSnapshot>(
             future: FirebaseFirestore.instance
@@ -135,6 +137,71 @@ class ArtworkPage extends StatelessWidget {
                     Text(
                       description,
                       style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            likes.contains(
+                                    FirebaseAuth.instance.currentUser?.uid)
+                                ? Icons.favorite
+                                : Icons.favorite_border,
+                          ),
+                          onPressed: () async {
+                            String? currentUserId =
+                                FirebaseAuth.instance.currentUser?.uid;
+                            if (currentUserId == null) return;
+
+                            DocumentReference artworkRef = FirebaseFirestore
+                                .instance
+                                .collection('artworks')
+                                .doc(artworkId);
+
+                            if (likes.contains(currentUserId)) {
+                              await artworkRef.update({
+                                'likes': FieldValue.arrayRemove([currentUserId])
+                              });
+                            } else {
+                              await artworkRef.update({
+                                'likes': FieldValue.arrayUnion([currentUserId])
+                              });
+                            }
+                          },
+                        ),
+                        Text('${likes.length} likes'),
+                        const SizedBox(width: 16),
+                        IconButton(
+                          icon: Icon(
+                            shares.contains(
+                                    FirebaseAuth.instance.currentUser?.uid)
+                                ? Icons.share
+                                : Icons.share_outlined,
+                          ),
+                          onPressed: () async {
+                            String? currentUserId =
+                                FirebaseAuth.instance.currentUser?.uid;
+                            if (currentUserId == null) return;
+
+                            DocumentReference artworkRef = FirebaseFirestore
+                                .instance
+                                .collection('artworks')
+                                .doc(artworkId);
+
+                            if (shares.contains(currentUserId)) {
+                              await artworkRef.update({
+                                'shares':
+                                    FieldValue.arrayRemove([currentUserId])
+                              });
+                            } else {
+                              await artworkRef.update({
+                                'shares': FieldValue.arrayUnion([currentUserId])
+                              });
+                            }
+                          },
+                        ),
+                        Text('${shares.length} shares'),
+                      ],
                     ),
                     const Divider(height: 32),
                     const Text(
@@ -247,14 +314,38 @@ class _CommentSectionState extends State<CommentSection> {
                     }
 
                     if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                      return _buildCommentTile(
-                        context: context,
-                        username: 'Unknown user',
-                        profilePictureUrl: defaultProfilePictureUrl,
-                        comment: comment,
-                        formattedTimestamp: formattedTimestamp,
-                        likes: likes,
-                        commentId: commentId,
+                      return ListTile(
+                        title: const Text('Unknown user'),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(comment),
+                            const SizedBox(height: 5),
+                            Text(
+                              formattedTimestamp,
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                likes.contains(
+                                        FirebaseAuth.instance.currentUser?.uid)
+                                    ? Icons.favorite
+                                    : Icons.favorite_border,
+                              ),
+                              onPressed: () =>
+                                  _toggleLikeComment(commentId, likes),
+                            ),
+                            Text(
+                              '${likes.length} likes',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                       );
                     }
 
@@ -265,15 +356,56 @@ class _CommentSectionState extends State<CommentSection> {
                     var profilePictureUrl = userData?['profilePictureUrl'] ??
                         defaultProfilePictureUrl;
 
-                    return _buildCommentTile(
-                      context: context,
-                      username: username,
-                      profilePictureUrl: profilePictureUrl,
-                      comment: comment,
-                      formattedTimestamp: formattedTimestamp,
-                      likes: likes,
-                      commentId: commentId,
-                      commenterId: commenterId,
+                    return ListTile(
+                      leading: CircleAvatar(
+                        backgroundImage: NetworkImage(profilePictureUrl),
+                      ),
+                      title: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProfilePage(userId: commenterId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          username,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.blue),
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(comment),
+                          const SizedBox(height: 5),
+                          Text(
+                            formattedTimestamp,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: Icon(
+                              likes.contains(
+                                      FirebaseAuth.instance.currentUser?.uid)
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                            ),
+                            onPressed: () =>
+                                _toggleLikeComment(commentId, likes),
+                          ),
+                          Text(
+                            '${likes.length} likes',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                     );
                   },
                 );
@@ -282,111 +414,41 @@ class _CommentSectionState extends State<CommentSection> {
           },
         ),
         const SizedBox(height: 10),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _commentController,
-                decoration: InputDecoration(
-                  labelText: 'Add a comment',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                ),
-              ),
+        TextField(
+          controller: _commentController,
+          decoration: InputDecoration(
+            labelText: 'Add a comment',
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10.0),
             ),
-            const SizedBox(width: 10),
-            ElevatedButton(
-              onPressed: () async {
-                if (_commentController.text.isNotEmpty) {
-                  String? currentUserId =
-                      FirebaseAuth.instance.currentUser?.uid;
-                  if (currentUserId != null) {
-                    await FirebaseFirestore.instance
-                        .collection('artworks')
-                        .doc(widget.artworkId)
-                        .collection('comments')
-                        .add({
-                      'comment': _commentController.text,
-                      'commenterID': currentUserId,
-                      'timestamp': Timestamp.now(),
-                      'likes': [],
-                    });
-                    _commentController.clear();
-                  }
-                }
-              },
-              child: const Text('Submit'),
-            ),
-          ],
+          ),
         ),
-      ],
-    );
-  }
-
-  Widget _buildCommentTile({
-    required BuildContext context,
-    required String username,
-    required String profilePictureUrl,
-    required String comment,
-    required String formattedTimestamp,
-    required List<dynamic> likes,
-    required String commentId,
-    String? commenterId,
-  }) {
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: NetworkImage(profilePictureUrl),
-      ),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              if (commenterId != null) {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => ProfilePage(userId: commenterId),
-                  ),
-                );
+        const SizedBox(height: 10),
+        Align(
+          alignment: Alignment.centerRight,
+          child: ElevatedButton(
+            onPressed: () async {
+              if (_commentController.text.isNotEmpty) {
+                String? currentUserId = FirebaseAuth.instance.currentUser?.uid;
+                if (currentUserId != null) {
+                  await FirebaseFirestore.instance
+                      .collection('artworks')
+                      .doc(widget.artworkId)
+                      .collection('comments')
+                      .add({
+                    'comment': _commentController.text,
+                    'commenterID': currentUserId,
+                    'timestamp': Timestamp.now(),
+                    'likes': [],
+                  });
+                  _commentController.clear();
+                }
               }
             },
-            child: Text(
-              username,
-              style: const TextStyle(
-                  fontWeight: FontWeight.bold, color: Colors.blue),
-            ),
+            child: const Text('Submit'),
           ),
-          Column(
-            children: [
-              IconButton(
-                icon: Icon(
-                  likes.contains(FirebaseAuth.instance.currentUser?.uid)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                ),
-                onPressed: () => _toggleLikeComment(commentId, likes),
-              ),
-              Text(
-                '${likes.length} likes',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ],
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(comment),
-          const SizedBox(height: 5),
-          Text(
-            formattedTimestamp,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
